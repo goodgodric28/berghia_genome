@@ -1,7 +1,7 @@
 ####################################
 # Bs_genome_clade_specific_genes.R
 # Written by: Jessica A. Goodheart
-# Last Updated: 30 May 2023
+# Last Updated: 26 July 2022
 # Purpose: To analyze the clade and tissue distribution of genes in Berghia
 # Inputs used: Counts from htseq-counts, Orthofinder/kinfin results, and functional annotations
 ####################################
@@ -15,7 +15,7 @@ require(dplyr)
 require(stringr)
 
 # Set the working directory
-directory = "[PATH TO]/tissue_diffexp/deseq2_clades/"
+directory = "/Users/jessicagoodheart/Dropbox/Research/2_Projects/berghia_genome/April_2021/annotations_analysis/tissue_diffexp/deseq2/"
 setwd(directory)
 
 # Pull in counts data for all genes
@@ -24,7 +24,7 @@ all_genes$gene = as.character(all_genes$gene)
 
 # Pull in clade-specific lists of genes
 berghia = scan("berghia/Berghia_stephanieae_genes.txt", what="", sep="\n")
-aeolidoidea = scan("aeolidoidea/Aeolidioidea_only_genes.txt", what="", sep="\n")
+aeolidina = scan("aeolidina/Aeolidina_only_genes.txt", what="", sep="\n")
 nudibranchia = scan("nudibranchia/Nudibranchia_only_genes.txt", what="", sep="\n")
 gastropoda = scan("gastropoda/Gastropoda_only_genes.txt", what="", sep="\n")
 mollusca = scan("mollusca/Mollusca_only_genes.txt", what="", sep="\n")
@@ -58,12 +58,12 @@ FO_down = read.csv("../deseq2_tissues/foot/Bs_tissues_foot_DESeq2-downregulated-
 TA_down = read.csv("../deseq2_tissues/tail/Bs_tissues_tail_DESeq2-downregulated-stats-filtered.csv", header=TRUE)[,1]
 
 # Pull in interproscan database accessions
-annot_db = read.table("../inputs/functional_annotation.txt", header=TRUE, sep="\t")
+annot_db = read.table("../functional_annotation.txt", header=TRUE, sep="\t")
 annot_db$protein_id = gsub(".t[0-9]*", "", as.character(annot_db$protein_id))
 annot.db.sub = distinct(annot_db, protein_id, .keep_all=TRUE)
 
 # Pull in blastp annotations
-blastp = read.csv("../inputs/Bs_protein-blasthit-ALL-info.txt", sep="\t", 
+blastp = read.csv("../../genome_annot_nov2021/protein_annotations/filtered/Bs_protein-blasthit-ALL-info.txt", sep="\t", 
                    header=TRUE, as.is=TRUE, na.strings=c("","NA"), fill=TRUE)
 blastp$prot_id = gsub(".t[0-9]*", "", as.character(blastp$prot_id))
 blastp.sub = distinct(blastp, prot_id, .keep_all=TRUE)
@@ -82,8 +82,8 @@ for (i in all_genes$gene) {
   index = grep(ie, all_genes$gene)
   if (i %in% berghia) { 
     clades[index]="Berghia"
-  } else if (i %in% aeolidoidea) { 
-    clades[index]="Aeolidoidea"
+  } else if (i %in% aeolidina) { 
+    clades[index]="Aeolidina"
   } else if (i %in% nudibranchia) { 
     clades[index]="Nudibranchia"
   } else if (i %in% gastropoda) { 

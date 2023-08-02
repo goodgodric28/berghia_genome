@@ -13,7 +13,7 @@ tid=[PATH TO]/tissue_diffexp/deseq2_tissues
 
 ######### Clade-specific analyses  ################
 # Create All_other_genes.txt file for all non-clade-specific genes
-cat "$cld"/berghia/Berghia_stephanieae_genes.txt "$cld"/aeolidoidea/Aeolidioidea_only_genes.txt "$cld"/nudibranchia/Nudibranchia_only_genes.txt "$cld"/gastropoda/Gastropoda_only_genes.txt "$cld"/mollusca/Mollusca_only_genes.txt | sort | uniq > clade_specific_genes.txt
+cat "$cld"/berghia/Berghia_stephanieae_genes.txt "$cld"/aeolidina/Aeolidina_only_genes.txt "$cld"/nudibranchia/Nudibranchia_only_genes.txt "$cld"/gastropoda/Gastropoda_only_genes.txt "$cld"/mollusca/Mollusca_only_genes.txt | sort | uniq > clade_specific_genes.txt
 comm -23 BsV1_geneids.txt clade_specific_genes.txt > "$cld"/all_others/All_other_genes.txt
 
 # Run DESeq2 setup analysis
@@ -21,7 +21,7 @@ cd "$cld"
 Rscript Bs_genome_DESeq2.R
 
 # Loop through R-scripts
-clades=(berghia aeolidoidea nudibranchia gastropoda mollusca all_others all_genes)
+clades=(berghia aeolidina nudibranchia gastropoda mollusca all_others all_genes)
 
 for i in "${clades[@]}"; do
     cd "$cld"/"$i"
