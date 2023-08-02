@@ -1,0 +1,227 @@
+#####################################
+# Bs_genome_DESeq2_berghia.R#
+# Written by: Jessica A. Goodheart#
+# Last Updated: 7 June 2022#
+# Purpose: To analyze differential expression data from Berghia tissues in all genes.#
+# Inputs used: Expression counts from htseq-count and Orthofinder/kinfin orthogroup results#
+#####################################
+#
+#####################################
+# Initial setup#
+#####################################
+#
+# Set the working directory#
+directory <- "~/Dropbox (Personal)/Research/4Projects/berghia_genome/April_2021/annotations_analysis/tissue_diffexp/deseq2/"#
+read_dir <- "~/Dropbox (Personal)/Research/4Projects/berghia_genome/April_2021/annotations_analysis/tissue_diffexp/read_files/"#
+setwd(directory)#
+#
+# Set the prefix for each output file name#
+outputPrefix <- "Bs_tissues_DESeq2"#
+#
+#####################################
+# DESeq2 Analyses#
+# Modified from: https://benchtobioinformatics.wordpress.com/category/dexseq/#
+#####################################
+#
+# Load DESeq2 library for differential expression#
+library("DESeq2")#
+#
+# Read in counts files for each tissue#
+sampleFiles<- c("Bb7-BsV1_genome.counts",#
+                "Bb8-BsV1_genome.counts",#
+                "D1-BsV1_genome.counts",#
+                "D2-BsV1_genome.counts",#
+                "D4-BsV1_genome.counts",#
+                "F1-BsV1_genome.counts",#
+                "F4-BsV1_genome.counts",#
+                "OT1-BsV1_genome.counts",#
+                "OT2-BsV1_genome.counts",#
+                "OT3-BsV1_genome.counts",#
+                "P1-BsV1_genome.counts",#
+                "P2-BsV1_genome.counts",#
+                "P3-BsV1_genome.counts",#
+                "R1-BsV1_genome.counts",#
+                "R2-BsV1_genome.counts",#
+                "R4-BsV1_genome.counts",#
+                "TL3-BsV1_genome.counts",#
+                "TL4-BsV1_genome.counts")#
+#
+# Set sample names for counts#
+sampleNames <- c("Brain 7", "Brain 8",#
+                 "Distal Ceras 1", "Distal Ceras 2", "Distal Ceras 3",#
+                 "Foot 1", "Foot 2",#
+                 "Oral Tentacle 1", "Oral Tentacle 2", "Oral Tentacle 3",#
+                 "Proximal Ceras 1", "Proximal Ceras 2", "Proximal Ceras 3",#
+                 "Rhinophore 1", "Rhinophore 2", "Rhinophore 3",#
+                 "Tail 1", "Tail 2")#
+#
+# Set sample conditions for counts#
+sampleCondition <- c("brain", "brain",#
+                     "distCeras","distCeras","distCeras",#
+                     "foot","foot",#
+                     "oralTent","oralTent","oralTent",#
+                     "proxCeras","proxCeras","proxCeras",#
+                     "rhinophore","rhinophore","rhinophore",#
+                     "tail","tail")#
+#
+# Create DESeq2 sample table#
+sampleTable <- data.frame(sampleName = sampleNames, fileName = sampleFiles, condition = sampleCondition)#
+#
+# Set treatment levels for DESeq2 analysis#
+treatments = c("brain","distCeras","foot","oralTent","proxCeras","rhinophore","tail")#
+#
+# Create DESeq2 data set from counts#
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,#
+                                       directory = read_dir,#
+                                       design = ~1 + condition)#
+colData(ddsHTSeq)$condition <- factor(colData(ddsHTSeq)$condition,#
+                                      levels = treatments)#
+#
+# Calculate differential expression based on the negative binomial (i.e., Gamma-Poisson) distribution#
+dds <- DESeq(ddsHTSeq)#
+res <- results(dds)#
+#
+# Save data results and normalized reads to csv#
+resdata <- merge(as.data.frame(res), as.data.frame(counts(dds,normalized =TRUE)), by = 'row.names', sort = FALSE)#
+names(resdata)[1] <- 'gene'#
+write.csv(resdata, file = paste0(outputPrefix, "-full-normalized-counts.csv"), quote=FALSE)#
+#
+# order results by padj value (most significant to least)#
+res <- res[order(res$padj),]#
+#
+# Subset results to only include Berghia-specific genes#
+res=res[rownames(res) %in% berghia_novel_genes, ]#
+dds_filt <- dds[berghia_novel_genes, ]#
+#
+# Send subsetted and normalized counts to tab delimited file#
+genes <- as.vector(rownames(counts(dds_filt,normalized=T)))#
+write.table(cbind(as.data.frame(genes), as.data.frame(counts(dds_filt,normalized=T))), #
+            file = paste0(outputPrefix, "-filtered-normalized-counts.txt"), sep = '\t', quote=FALSE)#
+#
+# Produce DataFrame of results of statistical tests#
+mcols(res, use.names = T)#
+write.csv(as.data.frame(mcols(res, use.name = T)),file = paste0(outputPrefix, "-test-conditions.csv"), quote=FALSE)#
+#
+# Replacing outlier value with estimated value as predicted by distrubution using#
+# "trimmed mean" approach. Recommended if you have several replicates per treatment#
+# DESeq2 will automatically do this if you have 7 or more replicates. #
+#
+ddsClean <- replaceOutliersWithTrimmedMean(dds_filt)#
+ddsClean <- DESeq(ddsClean)#
+tab <- table(initial = results(dds_filt)$padj < 0.05,#
+             cleaned = results(ddsClean)$padj < 0.05)#
+addmargins(tab)#
+write.csv(as.data.frame(tab),file = paste0(outputPrefix, "-replaceoutliers.csv"), quote=FALSE)#
+resClean <- results(ddsClean)#
+resClean = subset(res, padj<0.05)#
+resClean <- resClean[order(resClean$padj),]#
+write.csv(as.data.frame(resClean),file = paste0(outputPrefix, "-replaceoutliers-results.csv"), quote=FALSE)
+#####################################
+# Bs_genome_DESeq2.R#
+# Written by: Jessica A. Goodheart#
+# Last Updated: 7 June 2022#
+# Purpose: To analyze differential expression data from Berghia tissues in all genes.#
+# Inputs used: Expression counts from htseq-count#
+#####################################
+#
+#####################################
+# Initial setup#
+#####################################
+#
+# Set the working directory#
+directory <- "~/Dropbox (Personal)/Research/4Projects/berghia_genome/April_2021/annotations_analysis/tissue_diffexp/deseq2/"#
+read_dir <- "~/Dropbox (Personal)/Research/4Projects/berghia_genome/April_2021/annotations_analysis/tissue_diffexp/read_files/"#
+setwd(directory)#
+#
+# Set the prefix for each output file name#
+outputPrefix <- "Bs_tissues_DESeq2"#
+#
+#####################################
+# DESeq2 Analyses#
+# Modified from: https://benchtobioinformatics.wordpress.com/category/dexseq/#
+#####################################
+#
+# Load DESeq2 library for differential expression#
+library("DESeq2")#
+#
+# Read in counts files for each tissue#
+sampleFiles<- c("Bb7-BsV1_genome.counts",#
+                "Bb8-BsV1_genome.counts",#
+                "D1-BsV1_genome.counts",#
+                "D2-BsV1_genome.counts",#
+                "D4-BsV1_genome.counts",#
+                "F1-BsV1_genome.counts",#
+                "F4-BsV1_genome.counts",#
+                "OT1-BsV1_genome.counts",#
+                "OT2-BsV1_genome.counts",#
+                "OT3-BsV1_genome.counts",#
+                "P1-BsV1_genome.counts",#
+                "P2-BsV1_genome.counts",#
+                "P3-BsV1_genome.counts",#
+                "R1-BsV1_genome.counts",#
+                "R2-BsV1_genome.counts",#
+                "R4-BsV1_genome.counts",#
+                "TL3-BsV1_genome.counts",#
+                "TL4-BsV1_genome.counts")#
+#
+# Set sample names for counts#
+sampleNames <- c("Brain 7", "Brain 8",#
+                 "Distal Ceras 1", "Distal Ceras 2", "Distal Ceras 3",#
+                 "Foot 1", "Foot 2",#
+                 "Oral Tentacle 1", "Oral Tentacle 2", "Oral Tentacle 3",#
+                 "Proximal Ceras 1", "Proximal Ceras 2", "Proximal Ceras 3",#
+                 "Rhinophore 1", "Rhinophore 2", "Rhinophore 3",#
+                 "Tail 1", "Tail 2")#
+#
+# Set sample conditions for counts#
+sampleCondition <- c("brain", "brain",#
+                     "distCeras","distCeras","distCeras",#
+                     "foot","foot",#
+                     "oralTent","oralTent","oralTent",#
+                     "proxCeras","proxCeras","proxCeras",#
+                     "rhinophore","rhinophore","rhinophore",#
+                     "tail","tail")#
+#
+# Create DESeq2 sample table#
+sampleTable <- data.frame(sampleName = sampleNames, fileName = sampleFiles, condition = sampleCondition)#
+#
+# Set treatment levels for DESeq2 analysis#
+treatments = c("brain","distCeras","foot","oralTent","proxCeras","rhinophore","tail")#
+#
+# Create DESeq2 data set from counts#
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,#
+                                       directory = read_dir,#
+                                       design = ~1 + condition)#
+colData(ddsHTSeq)$condition <- factor(colData(ddsHTSeq)$condition,#
+                                      levels = treatments)#
+#
+# Calculate differential expression based on the negative binomial (i.e., Gamma-Poisson) distribution#
+dds <- DESeq(ddsHTSeq)#
+res <- results(dds)#
+#
+# Save data results and normalized reads to csv#
+resdata <- merge(as.data.frame(res), as.data.frame(counts(dds,normalized =TRUE)), by = 'row.names', sort = FALSE)#
+names(resdata)[1] <- 'gene'#
+write.csv(resdata, file = paste0(outputPrefix, "-full-normalized-counts.csv"), quote=FALSE)#
+#
+# order results by padj value (most significant to least)#
+res <- res[order(res$padj),]#
+#
+# Produce DataFrame of results of statistical tests#
+mcols(res, use.names = T)#
+write.csv(as.data.frame(mcols(res, use.name = T)),file = paste0(outputPrefix, "-test-conditions.csv"), quote=FALSE)#
+#
+# Replacing outlier value with estimated value as predicted by distrubution using#
+# "trimmed mean" approach. Recommended if you have several replicates per treatment#
+# DESeq2 will automatically do this if you have 7 or more replicates. #
+#
+ddsClean <- replaceOutliersWithTrimmedMean(dds)#
+ddsClean <- DESeq(ddsClean)#
+tab <- table(initial = results(dds_filt)$padj < 0.05,#
+             cleaned = results(ddsClean)$padj < 0.05)#
+addmargins(tab)#
+write.csv(as.data.frame(tab),file = paste0(outputPrefix, "-replaceoutliers.csv"), quote=FALSE)#
+resClean <- results(ddsClean)#
+resClean = subset(res, padj<0.05)#
+resClean <- resClean[order(resClean$padj),]#
+write.csv(as.data.frame(resClean),file = paste0(outputPrefix, "-replaceoutliers-results.csv"), quote=FALSE)
