@@ -50,9 +50,6 @@ bash diffexp_analysis.sh
 
 # Citation
 
-Goodheart JA, Bigasin A, Fiorenza RA, Morrill K, Jacob M, Longato J, 
-Taraporevala N, Whitesel C, Masterson P, Batzel GO, Johnston HT, Ramirez 
-MD, Katz, PS, and Lyons DC. In Preparation. A new chromosome-level genome 
+Goodheart JA, Rio RA, Taraporevala NF, Fiorenza RA, Barnes SR, Morrill K, Jacob MAC, Whitesel C, Masterson P, Batzel GO, Johnston HT, Ramirez MD, Katz, PS, and Lyons DC. In Preparation. A new chromosome-level genome 
 for the nudibranch gastropod *Berghia stephanieae* helps parse clade-specific gene expression in novel and conserved phenotypes.
-
 
