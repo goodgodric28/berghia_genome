@@ -65,6 +65,7 @@ counts_and_location.R
 
 # Citation
 
-Goodheart JA, Rio RA, Taraporevala NF, Fiorenza RA, Barnes SR, Morrill K, Jacob MAC, Whitesel C, Masterson P, Batzel GO, Johnston HT, Ramirez MD, Katz, PS, and Lyons DC. In Preparation. A new chromosome-level genome 
-for the nudibranch gastropod *Berghia stephanieae* helps parse clade-specific gene expression in novel and conserved phenotypes.
-
+Goodheart JA, Rio RA, Taraporevala NF, Fiorenza RA, Barnes SR, Morrill K, Jacob MAC, Whitesel C, Masterson P, 
+Batzel GO, Johnston HT, Ramirez MD, Katz, PS, and Lyons DC. In Preparation. A chromosome-level genome for the 
+nudibranch gastropod *Berghia stephanieae* helps parse clade-specific gene expression in novel and conserved 
+phenotypes.
