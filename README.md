@@ -48,6 +48,21 @@ Commands must be run for each sample. Performed with R v3.6.2 DESeq2 v1.26.0:
 bash diffexp_analysis.sh
 ```
 
+# Scripts to generate some figures (4_figures)
+## Figure 2
+Performed with R v3.6.2:
+```
+size_barplot.R
+mollusc_genome_plot.R
+```
+Includes the file Mollusc_genome_stats.csv for use with the script mollusc_genome_plot.R
+
+## Figure 3
+Performed with R v3.6.2:
+```
+counts_and_location.R
+```
+
 # Citation
 
 Goodheart JA, Rio RA, Taraporevala NF, Fiorenza RA, Barnes SR, Morrill K, Jacob MAC, Whitesel C, Masterson P, Batzel GO, Johnston HT, Ramirez MD, Katz, PS, and Lyons DC. In Preparation. A new chromosome-level genome 
