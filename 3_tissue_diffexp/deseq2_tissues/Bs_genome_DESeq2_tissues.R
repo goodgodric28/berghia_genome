@@ -1,7 +1,7 @@
 ####################################
 # Bs_genome_DESeq2_tissues.R
 # Written by: Jessica A. Goodheart
-# Last Updated: 30 May 2023
+# Last Updated: 3 August 2023
 # Purpose: To analyze the clade distribution of upregulated genes in particular tissues in Berghia
 # Inputs used: Expression counts from htseq-count and Orthofinder/kinfin orthogroup results
 ####################################
@@ -20,12 +20,14 @@ require(RColorBrewer)
 require(venn)
 require(GGally)
 require(ggbreak)
+require(sna)
+require(ggh4x)
 
 # Set output prefix
 outputPrefix <- "Bs_tissues_DESeq2"
 
 # Set the working directory
-directory <- "[PATH TO]/tissue_diffexp/deseq2_tissues"
+directory <- "[PATH_TO]/tissue_diffexp/deseq2_tissues"
 setwd(directory)
 
 
@@ -59,11 +61,11 @@ colnames(tail.2) <- c("Clade","Genes","Props","Tissue")
 
 # Tidy
 #lineage_data <- rbind(brain.2,rhinophore.2,ot.2,distalceras.2)
-#lineage_data$Clade <- factor(lineage_data$Clade,levels = c("all others","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+#lineage_data$Clade <- factor(lineage_data$Clade,levels = c("all others","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 
 # Tidy 
 lineage_data <- rbind(brain.2,rhinophore.2,oraltentacle.2,distalceras.2,proximalceras.2,foot.2,tail.2)
-lineage_data$Clade <- factor(lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+lineage_data$Clade <- factor(lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 
 # Plot figure
 c <- ggplot(lineage_data, aes(x = Tissue, y = Genes)) +
@@ -95,7 +97,7 @@ dev.off()
 # Upregulated genes for each tissue
 ####################################
 # Pull in annotation and clade/tissue specificity data
-annot.summary <- read.delim("../deseq2_clades/gene-specificity-annotation-summary.txt", sep = "\t", header=TRUE)
+annot.summary <- read.delim("../deseq2/gene-specificity-annotation-summary.txt", sep = "\t", header=TRUE)
 
 # Pull in lists of genes upregulated in each tissue 
 brain.up <- read.table("brain/Bs_tissues_brain_DESeq2-upregulated-stats-filtered.csv", header=TRUE, sep = ",")
@@ -146,7 +148,7 @@ colnames(brain.up.df) <- colnames(rhinophore.up.df) <- colnames(oraltentacle.up.
 # Tidy (no brain)
 up.lineage_data <- rbind(brain.up.df,rhinophore.up.df,oraltentacle.up.df,distalceras.up.df,proximalceras.up.df,foot.up.df,tail.up.df)
 rownames(up.lineage_data) <- 1:nrow(up.lineage_data)
-up.lineage_data$Clade <- factor(up.lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+up.lineage_data$Clade <- factor(up.lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 
 # Tables of upregulated genes and props
 up.genes <- pivot_wider(up.lineage_data, id_cols = Clade, names_from = Tissue, values_from = Genes)
@@ -243,7 +245,7 @@ colnames(brain.up.only.df) <- colnames(rhinophore.up.only.df) <- colnames(oralte
 # Tidy (no brain)
 up.lineage_data.only <- rbind(brain.up.only.df,rhinophore.up.only.df,oraltentacle.up.only.df,distalceras.up.only.df,proximalceras.up.only.df,foot.up.only.df,tail.up.only.df)
 rownames(up.lineage_data.only) <- 1:nrow(up.lineage_data.only)
-up.lineage_data.only$Clade <- factor(up.lineage_data.only$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+up.lineage_data.only$Clade <- factor(up.lineage_data.only$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 
 # Tables of upregulated genes and props
 up.genes.only <- pivot_wider(up.lineage_data.only, id_cols = Clade, names_from = Tissue, values_from = Genes)
@@ -333,7 +335,7 @@ colnames(brain.down.df) <- colnames(rhinophore.down.df) <- colnames(oraltentacle
 # Tidy (no brain)
 down.lineage_data <- rbind(brain.down.df,rhinophore.down.df,oraltentacle.down.df,distalceras.down.df,proximalceras.down.df,foot.down.df,tail.down.df)
 rownames(down.lineage_data) <- 1:nrow(down.lineage_data)
-down.lineage_data$Clade <- factor(down.lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+down.lineage_data$Clade <- factor(down.lineage_data$Clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 
 down.genes <- pivot_wider(down.lineage_data, id_cols = Clade, names_from = Tissue, values_from = Genes)
 down.genes[is.na(down.genes)] <- 0
@@ -625,11 +627,11 @@ clades.data.sub <- clades.data[match(annotation.up$gene, clades.data$genes),]
 annotation.up$clade <- clades.data.sub$clade
 
 # Subset to only genes upregulated in non-brain tissues
-annotation.up.table.nobrain <- annotation.up.table[annotation.up.table$tissue != 'brain',]
-annotation.up.table.sub <- annotation.up.table[annotation.up.table$gene %in% annotation.up.table.nobrain$gene,]
+annotation.up.table.nobrain <- annotation.up[annotation.up$tissue != 'brain',]
+annotation.up.table.sub <- annotation.up[annotation.up$gene %in% annotation.up.table.nobrain$gene,]
 
 # Organize data into factors
-annotation.up.table.sub$clade <- factor(annotation.up.table.sub$clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+annotation.up.table.sub$clade <- factor(annotation.up.table.sub$clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 annotation.up.table.sub$tissue <- factor(annotation.up.table.sub$tissue,levels = c("brain","rhinophore","oral tentacle",
                                                                                    "distal ceras","proximal ceras","foot","tail"))
 annotation.up.table.sub$annotation <- factor(annotation.up.table.sub$annotation,levels = c("annotated","uncharacterized","unannotated"))
@@ -668,7 +670,7 @@ annotation.up.count.clades <- annotation.up %>% dplyr::count(tissue, annotation,
 annotation.up.count2.clades <- as.data.frame(annotation.up.count.clades %>% group_by(clade, tissue) %>% mutate(freq = n / sum(n)))
 annotation.up.count2.clades$annotation <- factor(annotation.up.count2.clades$annotation, 
                                                  levels = c("annotated", "uncharacterized", "unannotated"))
-annotation.up.count2.clades$clade <- factor(annotation.up.count2.clades$clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidoidea","Berghia"))
+annotation.up.count2.clades$clade <- factor(annotation.up.count2.clades$clade,levels = c("Other","Mollusca","Gastropoda","Nudibranchia","Aeolidina","Berghia"))
 write.table(annotation.up.count2.clades, paste0(outputPrefix, "-annotation-data-upregulated-clades.txt"), quote=FALSE, row.names = FALSE, sep="\t")
 
 # Table for each tissue

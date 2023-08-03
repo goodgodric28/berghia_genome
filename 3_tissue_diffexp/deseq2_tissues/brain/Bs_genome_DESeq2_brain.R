@@ -1,7 +1,7 @@
 ####################################
 # Bs_genome_DESeq2_brain.R
 # Written by: Jessica A. Goodheart
-# Last Updated: 30 May 2023
+# Last Updated: 2 August 2023
 # Purpose: To analyze the clade distribution and expression of brain genes in Berghia
 # Inputs used: Expression counts from htseq-count and Orthofinder/kinfin orthogroup results
 ####################################
@@ -222,16 +222,16 @@ library(R.utils)
 library(ProtDomSeq)
 
 # Pull in interproscan annotation data 
-annot = read.csv("../../inputs/berghia_RM_iso_anysupport_ipscan_2021_11.tsv", sep="\t")
+annot = read.csv("../../../genome_annot_nov2021/protein_annotations/filtered/berghia_RM_iso_anysupport_ipscan_2021_11.tsv", sep="\t")
 annot_edit = annot[-c(2:3,7:11)]
 colnames(annot_edit) = c("prot_id", "source", "type", "label", "ipr_id", "go_term")
 
 # Pull in interproscan database accessions
-annot_db = read.table("../../inputs/functional_annotation.txt", header=TRUE, sep="\t")
+annot_db = read.table("../../functional_annotation.txt", header=TRUE, sep="\t")
 
 # Pull in blastp hits separately
-blastp = read.csv("../../inputs/Bs_protein-blasthit-ALL-info.txt", sep="\t", 
-                  header=TRUE, as.is=TRUE, na.strings=c("","NA"), fill=TRUE)
+blastp = read.csv("../../../genome_annot_nov2021/protein_annotations/filtered/Bs_protein-blasthit-ALL-info.txt", sep="\t", 
+                   header=TRUE, as.is=TRUE, na.strings=c("","NA"), fill=TRUE)
 
 # Pull out upregulated gene annotations into separate data frame
 tissue_annot = data.frame(matrix(ncol = ncol(annot_edit), nrow = 0))
@@ -251,7 +251,7 @@ write.table(tissue_annot, paste0(outputPrefix, "-annotations-up.txt"), quote=FAL
 write.table(label_summary, paste0(outputPrefix, "-label-summary-up.txt"), quote=FALSE, col.names = FALSE)
 
 # Sort go terms by number of times present
-goterm_summary = sort(summary(tissue_annot$go_term), decreasing=TRUE)
+goterm_summary = sort(summary(as.factor(tissue_annot$go_term)), decreasing=TRUE)
 goterm_summary = goterm_summary[!goterm_summary %in% 0]
 
 # Write out list of go terms to file
@@ -387,7 +387,7 @@ for (i in rownames(resClean.down)) {
 }
 
 # Sort annotations by number of times present
-label_summary = sort(summary(tissue_annot$label), decreasing=TRUE)
+label_summary = sort(summary(as.factor(tissue_annot$label)), decreasing=TRUE)
 label_summary = label_summary[!label_summary %in% 0]
 
 # Write out list of annotations to files
@@ -395,7 +395,7 @@ write.table(tissue_annot, paste0(outputPrefix, "-annotations-down.txt"), quote=F
 write.table(label_summary, paste0(outputPrefix, "-label-summary-down.txt"), quote=FALSE, col.names = FALSE)
 
 # Sort go terms by number of times present
-goterm_summary = sort(summary(tissue_annot$go_term), decreasing=TRUE)
+goterm_summary = sort(summary(as.factor(tissue_annot$go_term)), decreasing=TRUE)
 goterm_summary = goterm_summary[!goterm_summary %in% 0]
 
 # Write out list of go terms to file
@@ -476,23 +476,23 @@ library(purrr)
 library(dplyr)
 
 # Pull in normalized counts data for all genes (from all_genes diff exp)
-diff_exp = read.csv("[PATH TO]/tissue_diffexp/deseq2_clades/Bs_tissues_DESeq2-full-normalized-counts.csv")
+diff_exp = read.csv("[PATH TO]/tissue_diffexp/deseq2/Bs_tissues_DESeq2-full-normalized-counts.csv")
 diff_exp$X = NULL
 
 # Pull in Berghia gene ids for lineage-specific genes from kinfin analysis
-other_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/all_others/gene_annotations/Bs_tissues_all_others_DESeq2-BR-only-genelist.txt", what="", sep="\n")
-mollusca_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/mollusca/gene_annotations/Bs_tissues_mollusca_DESeq2-BR-only-genelist.txt", what="", sep="\n")
-gastropoda_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/gastropoda/gene_annotations/Bs_tissues_gastropoda_DESeq2-BR-only-genelist.txt", what="", sep="\n")
-nudibranchia_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/nudibranchia/gene_annotations/Bs_tissues_nudibranchia_DESeq2-BR-only-genelist.txt", what="", sep="\n")
-aeolidoidea_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/aeolidoidea/gene_annotations/Bs_tissues_aeolidoidea_DESeq2-BR-only-genelist.txt", what="", sep="\n")
-berghia_genes = scan("[PATH TO]/tissue_diffexp/deseq2_clades/berghia/gene_annotations/Bs_tissues_berghia_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+other_genes = scan("[PATH TO]/tissue_diffexp/deseq2/all_others/gene_annotations/Bs_tissues_all_others_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+mollusca_genes = scan("[PATH TO]/tissue_diffexp/deseq2/mollusca/gene_annotations/Bs_tissues_mollusca_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+gastropoda_genes = scan("[PATH TO]/tissue_diffexp/deseq2/gastropoda/gene_annotations/Bs_tissues_gastropoda_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+nudibranchia_genes = scan("[PATH TO]/tissue_diffexp/deseq2/nudibranchia/gene_annotations/Bs_tissues_nudibranchia_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+aeolidina_genes = scan("[PATH TO]/tissue_diffexp/deseq2/aeolidina/gene_annotations/Bs_tissues_aeolidina_DESeq2-BR-only-genelist.txt", what="", sep="\n")
+berghia_genes = scan("[PATH TO]/tissue_diffexp/deseq2/berghia/gene_annotations/Bs_tissues_berghia_DESeq2-BR-only-genelist.txt", what="", sep="\n")
 
 # Subset results to only include clade-specific genes
 diff_exp.other = diff_exp[diff_exp$gene %in% other_genes, ]
 diff_exp.mollusca = diff_exp[diff_exp$gene %in% mollusca_genes, ]
 diff_exp.gastropoda = diff_exp[diff_exp$gene %in% gastropoda_genes, ]
 diff_exp.nudibranchia = diff_exp[diff_exp$gene %in% nudibranchia_genes, ]
-diff_exp.aeolidoidea = diff_exp[diff_exp$gene %in% aeolidoidea_genes, ]
+diff_exp.aeolidina = diff_exp[diff_exp$gene %in% aeolidina_genes, ]
 diff_exp.berghia = diff_exp[diff_exp$gene %in% berghia_genes, ]
 
 # Data frames with lineage-specific categories for each grouping
@@ -500,10 +500,10 @@ diff_exp.other$clade = rep("Other", nrow(diff_exp.other))
 diff_exp.mollusca$clade = rep("Mollusca", nrow(diff_exp.mollusca))
 diff_exp.gastropoda$clade = rep("Gastropoda", nrow(diff_exp.gastropoda))
 diff_exp.nudibranchia$clade = rep("Nudibranchia", nrow(diff_exp.nudibranchia))
-diff_exp.aeolidoidea$clade = rep("Aeolidoidea", nrow(diff_exp.aeolidoidea))
+diff_exp.aeolidina$clade = rep("Aeolidina", nrow(diff_exp.aeolidina))
 diff_exp.berghia$clade = rep("Berghia", nrow(diff_exp.berghia))
 
-diff_exp = do.call("rbind", list(diff_exp.mollusca,diff_exp.gastropoda,diff_exp.nudibranchia,diff_exp.aeolidoidea,diff_exp.berghia,diff_exp.other))
+diff_exp = do.call("rbind", list(diff_exp.mollusca,diff_exp.gastropoda,diff_exp.nudibranchia,diff_exp.aeolidina,diff_exp.berghia,diff_exp.other))
 write.table(diff_exp,file = paste0(outputPrefix, "-lin-spec-expression.txt"), sep = '\t', row.names=FALSE)
 
 # Create tidy data frame with lists of genes
@@ -516,7 +516,7 @@ write.table(as.data.frame(lin.spec.genes),file = paste0(outputPrefix, "-lin-spec
 lin.spec.genes.sum = data.frame(names(summary(as.factor(lin.spec.genes$clade))),unname(summary(as.factor(lin.spec.genes$clade))),rep("Clade",length(summary(as.factor(lin.spec.genes$clade)))))
 colnames(lin.spec.genes.sum) = c("Clade","lin_spec_genes","clade")
 
-levs = c("Berghia","Aeolidoidea","Nudibranchia","Gastropoda","Mollusca","Other")
+levs = c("Berghia","Aeolidina","Nudibranchia","Gastropoda","Mollusca","Other")
 for (i in 1:length(levs)) {
   n = levs[i]
   if (n %in% as.character(lin.spec.genes.sum$Clade)) {
