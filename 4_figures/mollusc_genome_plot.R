@@ -1,7 +1,7 @@
 ####################################
 # mollusc_genome_plot.R
 # Written by: Jessica A. Goodheart
-# Last Updated: 25 May 2023
+# Last Updated: 31 October 2023
 # Purpose: To generate a plot comparing Berghia to other mollusc genomes
 # Inputs used: Mollusca genome data from NCBI
 ####################################
@@ -10,23 +10,22 @@
 # Initial setup
 ####################################
 
-setwd("[PATH_TO]/2_genome_stats/genome_stats_chart/")
+setwd("[PATH_TO_DIR]")
 
 # Library
 library(ggplot2)
 library(ggrepel)
 
 # Pull in dataset
-genomes <- read.csv("Mollusc_genome_stats.csv")
-genomes2 <- subset(genomes,genomes$Species!="Crepidula atrasolea")
+genomes <- read.table("mollusca_genomes_data.txt",sep = "\t",header = TRUE)
 
-genomes2$Class <- factor(genomes2$Class,levels = c("Berghia","other Heterobranchia","other Gastropoda","Bivalvia","Cephalopoda","Polyplacophora"))
-cols <- c("#F8766D","#C49A00","#7CAE00", "#00C1A3", "#35A2FF", "#A58AFF")
+genomes$Group <- factor(genomes$Group,levels = c("Berghia","other Nudibranchia","other Heterobranchia","other Gastropoda","Scaphopoda","Bivalvia","Cephalopoda","Polyplacophora","Aplacophora"))
+cols <- c("#F8766D","#E7861B","#BB9D00","#5BB300", "#00C1A3", "#00ABFD", "#9590FF","#DC71FA","#FF62BC") 
 
 ########### Longest Scaffold ##############
 # Standard plot
 png("Mollusca_stats_chart.png")
-ggplot(genomes2, aes(x=BUSCO...genome, y=Longest.scaffold, color=Class)) + 
+ggplot(genomes, aes(x=BUSCO.completeness, y=Longest.scaffold, color=Group)) + 
   geom_point(aes(size=genome_size)) +
   theme_classic() +
   theme(axis.title.x=element_text(size = 15),
@@ -75,7 +74,7 @@ ggplot(genomes2, aes(x=BUSCO...genome, y=Longest.scaffold, color=Class)) +
 dev.off()
 
 
-ggplot(genomes2, aes(x=BUSCO...genome, y=Longest.scaffold, color=Class)) +
+ggplot(genomes2, aes(x=BUSCO...genome, y=Longest.scaffold, color=Group)) +
   geom_point(aes(size=genome_size)) +
   labs(x= "BUSCO Completeness (%)", y= "Longest Scaffold (Mb)", size="Genome Size", colour="Group") +
   theme_classic() +
@@ -84,8 +83,8 @@ ggplot(genomes2, aes(x=BUSCO...genome, y=Longest.scaffold, color=Class)) +
 
 ########### N50 ##############
 png("Mollusca_stats_chart_N50.png")
-ggplot(genomes2, aes(x=BUSCO...genome, y=N50..Mb., color=Class)) + 
-  geom_point(aes(size=genome_size)) +
+ggplot(genomes, aes(x=BUSCO.completeness, y=N50, color=Group)) + 
+  geom_point(aes(size=Assembled.Genome.Size)) +
   theme_classic() +
   theme(axis.title.x=element_text(size = 15),
         axis.text.x=element_text(size = 10),
@@ -93,13 +92,13 @@ ggplot(genomes2, aes(x=BUSCO...genome, y=N50..Mb., color=Class)) +
         axis.text.y=element_text(size = 10),
         legend.title = element_text(size = 15),
         legend.text = element_text(size = 10)) +
-  labs(x= "BUSCO Completeness (%)", y= "Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
+  labs(x= "BUSCO Completeness", y= "Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
   scale_size_continuous(range = c(2, 8))
 dev.off()
 
 png("Mollusca_stats_chart_logN50.png", width = 1000, height = 550)
-ggplot(genomes2, aes(x=BUSCO...genome, y=Log.scaffold.N50...Mb, color=Class)) + 
-  geom_point(aes(size=genome_size), alpha=0.6) +
+ggplot(genomes, aes(x=BUSCO.completeness, y=log.N50., color=Group)) + 
+  geom_point(aes(size=Assembled.Genome.Size), alpha=0.6) +
   scale_color_manual(values=cols) +
   theme_classic() +
   theme(axis.title.x=element_text(size = 25),
@@ -110,26 +109,48 @@ ggplot(genomes2, aes(x=BUSCO...genome, y=Log.scaffold.N50...Mb, color=Class)) +
         legend.text = element_text(size = 18),
         legend.position = c(.16,.57),
         plot.margin = margin(2,2,2,2, "cm")) +
-  labs(x= "BUSCO Completeness (%)", y= "Log(Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
+  labs(x= "BUSCO Completeness", y= "Log(Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
   scale_size_continuous(range = c(1, 12)) +
   guides(color = guide_legend(override.aes = list(size = 5)))
 dev.off()
 
-tiff("Mollusca_stats_chart_logN50.tiff", units="in", width=10.5, height=5.5, res=300)
-ggplot(genomes2, aes(x=BUSCO...genome, y=Log.scaffold.N50...Mb, color=Class)) + 
-  geom_point(aes(size=genome_size), alpha=0.6) +
+tiff("Mollusca_stats_chart_logN50.tiff", units="in", width=11, height=5.5, res=300)
+ggplot(genomes, aes(x=BUSCO.completeness, y=log.N50., color=Group)) + 
+  geom_point(aes(size=Assembled.Genome.Size), alpha=0.6) + 
   scale_color_manual(values=cols) +
   theme_classic() +
   theme(axis.title.x=element_text(size = 20),
         axis.text.x=element_text(size = 16),
         axis.title.y=element_text(size = 20),
         axis.text.y=element_text(size = 16),
-        legend.title = element_text(size = 14),
-        legend.text = element_text(size = 10),
-        legend.position = c(.14,.56),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        #legend.position = c(.2,.6),
         plot.margin = margin(1,1,1,1, "cm")) +
-  labs(x= "BUSCO Completeness (%)", y= "Log(Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
+  labs(x= "BUSCO Completeness (%)", y= "Log(Scaffold N50)", size="Genome Size (bases)", colour="Group") +
   scale_size_continuous(range = c(1, 10)) +
   guides(color = guide_legend(override.aes = list(size = 5)))
 dev.off()
 
+# Labeled
+tiff("Mollusca_stats_chart_logN50_labeled.tiff", units="in", width=33, height=15.5, res=300)
+ggplot(genomes, aes(x=BUSCO.completeness, y=log.N50., color=Group)) + 
+  geom_point(aes(size=Assembled.Genome.Size), alpha=0.6) + 
+  scale_color_manual(values=cols) +
+  theme_classic() +
+  theme(axis.title.x=element_text(size = 20),
+        axis.text.x=element_text(size = 16),
+        axis.title.y=element_text(size = 20),
+        axis.text.y=element_text(size = 16),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        #legend.position = c(.2,.6),
+        plot.margin = margin(1,1,1,1, "cm")) +
+  labs(x= "BUSCO Completeness (%)", y= "Log(Scaffold N50 (Mb)", size="Genome Size (Mb)", colour="Group") +
+  scale_size_continuous(range = c(1, 10)) +
+  guides(color = guide_legend(override.aes = list(size = 5))) +
+  geom_label_repel(aes(label = Species),
+                   box.padding   = 0.1, 
+                   point.padding = 0.5,
+                   segment.color = 'grey50')
+dev.off()

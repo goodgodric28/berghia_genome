@@ -13,10 +13,10 @@
 library("seqinr")
 library("ggplot2")
 
-setwd("[PATH_TO]/2_genome_stats/barplot")
+setwd("[PATH_TO_DIR]")
 
 # Pull out genome data
-genome <- read.fasta(file = "../../../../April_2021_data_analysis/genome_files/data_purged_filtered/Berghia_Apr2021_hirise_purged.filtered.fasta")
+genome <- read.fasta(file = "../../../../April_2021_data_analysis/genome_files/data_purged_filtered/Bstephanieae_V1.fasta")
 g_stats <- as.vector(lapply(genome, function(x) summary(x)$length))
 
 l <- vector()
